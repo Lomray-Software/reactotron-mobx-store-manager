@@ -35,8 +35,11 @@
     "build:watch": "rollup -c -w --environment BUILD:development",
     "lint:check": "eslint --ext \".ts,.tsx\" \"src/**/*.{ts,tsx,*.ts,*tsx}\"",
     "lint:format": "eslint --fix --ext \".ts,.tsx\" \"src/**/*.{ts,tsx,*.ts,*tsx}\"",
-    "ts:check": "tsc --project ./tsconfig.checks.json --skipLibCheck --noemit",
+    "ts:check": "tsc --project ./tsconfig.json --skipLibCheck --noemit",
     "prepare": "husky install"
+  },
+  "dependencies": {
+    "deep-object-diff": "^1.1.7"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",

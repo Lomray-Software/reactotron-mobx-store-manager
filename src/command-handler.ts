@@ -1,4 +1,5 @@
 import { Manager } from '@lomray/react-mobx-manager';
+import { diff } from 'deep-object-diff';
 import _ from 'lodash';
 import { spy } from 'mobx';
 import type { Reactotron } from 'reactotron-core-client';
@@ -24,6 +25,12 @@ class CommandHandler {
    * @protected
    */
   protected reactotron: Reactotron;
+
+  /**
+   * Save state for calculate difference between updates
+   * @protected
+   */
+  protected currentState: Record<string, any> = {};
 
   /**
    * Store global listeners
@@ -67,7 +74,7 @@ class CommandHandler {
    * @protected
    */
   protected getStoresState(filters?: string[]): { path: string; value: any }[] {
-    const state: Record<string, any> = {};
+    const state: { root: Record<string, any> } = { root: {} };
     const stores = Manager.get().getStores();
 
     Manager.get()
@@ -87,10 +94,20 @@ class CommandHandler {
         });
       });
 
+    // apply filters?
+    const changedState = diff(this.currentState, state.root);
+
+    this.currentState = state.root;
+
+    if (_.isEmpty(changedState)) {
+      return [];
+    }
+
     return [
       {
         path: 'state',
-        value: state?.root ?? {},
+        // value: changedState, // @TODO filter?
+        value: state.root,
       },
     ];
   }
@@ -99,7 +116,7 @@ class CommandHandler {
    * Send stores keys to state
    * @protected
    */
-  protected sendStoresKeys(payload: Record<string, any>): void {
+  protected sendStoresKeys(): void {
     this.reactotron.stateKeysResponse?.(null, Object.keys(this.getStoresState()));
   }
 
@@ -107,7 +124,7 @@ class CommandHandler {
    * Send stores values to state
    * @protected
    */
-  protected sendStoresValues(payload: Record<string, any>): void {
+  protected sendStoresValues(): void {
     this.reactotron.stateValuesResponse?.(null, this.getStoresState());
   }
 
@@ -119,9 +136,11 @@ class CommandHandler {
     const filters: string[] = [...new Set([...(payload?.paths ?? [])])];
 
     CommandHandler.listeners[Listeners.SPY] = spy((event) => {
-      if (event.type === 'update') {
-        this.reactotron.stateValuesChange?.(this.getStoresState(filters));
+      if (event.type === 'update' || !('name' in event)) {
+        return;
       }
+
+      this.reactotron.stateValuesChange?.(this.getStoresState(filters));
     });
 
     this.reactotron.stateValuesChange?.(this.getStoresState(filters));
@@ -133,10 +152,10 @@ class CommandHandler {
   public handle({ type, payload }: IReactotronCommand): void {
     switch (type) {
       case 'state.keys.request':
-        return this.sendStoresKeys(payload);
+        return this.sendStoresKeys();
 
       case 'state.values.request':
-        return this.sendStoresValues(payload);
+        return this.sendStoresValues();
 
       case 'state.values.subscribe':
         return this.subscribeStoresChanges(payload);
