@@ -1,0 +1,69 @@
+{
+  "name": "@lomray/reactotron-mobx-store-manager",
+  "version": "1.0.0",
+  "description": "This package provides reactotron plugin for mobx stores manager.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lomray-Software/reactotron-mobx-store-manager"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "lomray",
+    "javascript",
+    "mobx",
+    "store",
+    "manager",
+    "stores",
+    "state",
+    "plugin",
+    "reactotrone"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Mikhail Yarmaliuk",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Lomray-Software/reactotron-mobx-store-manager/issues"
+  },
+  "homepage": "https://github.com/Lomray-Software/reactotron-mobx-store-manager",
+  "scripts": {
+    "build": "rollup -c",
+    "build:watch": "rollup -c -w --environment BUILD:development",
+    "lint:check": "eslint --ext \".ts,.tsx\" \"src/**/*.{ts,tsx,*.ts,*tsx}\"",
+    "lint:format": "eslint --fix --ext \".ts,.tsx\" \"src/**/*.{ts,tsx,*.ts,*tsx}\"",
+    "ts:check": "tsc --project ./tsconfig.checks.json --skipLibCheck --noemit",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
+    "@lomray/eslint-config-react": "^2.0.0",
+    "@lomray/prettier-config": "^1.2.0",
+    "@types/hoist-non-react-statics": "^3.3.1",
+    "@types/lodash": "^4.14.186",
+    "@types/react": "^18.0.15",
+    "eslint": "8.21.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-jsx-a11y": "^6.6.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "reactotron-core-client": "^2.8.10",
+    "rollup": "^2.79.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-ts": "^3.0.2",
+    "semantic-release": "^19.0.5",
+    "ttypescript": "^1.5.13",
+    "typescript": "^4.7.4"
+  },
+  "peerDependencies": {
+    "@lomray/react-mobx-manager": ">=1.1.0",
+    "lodash": ">=4.0.0",
+    "mobx": "^6.6.2"
+  }
+}
