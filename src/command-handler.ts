@@ -79,7 +79,7 @@ class CommandHandler {
     }
 
     const [first, ...rest] = filter.split('*');
-    const currentKey = first.replace(/^\.+|\.+$/g, ''); // trim '.'
+    const currentKey = first.replace(/^(\.+)|(\.+)$/g, ''); // trim '.'
     const restFilter = rest.join('*');
     const newPaths: string[] = [];
 
