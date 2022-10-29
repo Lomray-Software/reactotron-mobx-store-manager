@@ -38,9 +38,6 @@
     "ts:check": "tsc --project ./tsconfig.json --skipLibCheck --noemit",
     "prepare": "husky install"
   },
-  "dependencies": {
-    "deep-object-diff": "^1.1.7"
-  },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",

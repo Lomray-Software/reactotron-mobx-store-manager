@@ -1,12 +1,12 @@
 import { Manager } from '@lomray/react-mobx-manager';
-import { diff } from 'deep-object-diff';
 import _ from 'lodash';
-import { spy } from 'mobx';
+import { runInAction, spy } from 'mobx';
 import type { Reactotron } from 'reactotron-core-client';
-import type { IReactotronCommand } from './types';
+import type { IReactotronCommand, IStateChanges } from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ICommandHandler {}
+export interface ICommandHandler {
+  defaultSubscribe?: string | false;
+}
 
 enum Listeners {
   SPY = 'spy',
@@ -19,18 +19,14 @@ class CommandHandler {
   /**
    * @protected
    */
-  protected config: ICommandHandler;
+  protected config: ICommandHandler = {
+    defaultSubscribe: '*',
+  };
 
   /**
    * @protected
    */
   protected reactotron: Reactotron;
-
-  /**
-   * Save state for calculate difference between updates
-   * @protected
-   */
-  protected currentState: Record<string, any> = {};
 
   /**
    * Store global listeners
@@ -43,7 +39,7 @@ class CommandHandler {
    */
   public constructor(reactotron: Reactotron, config: ICommandHandler = {}) {
     this.reactotron = reactotron;
-    this.config = config;
+    this.config = Object.assign(this.config, config);
 
     Object.values(CommandHandler.listeners).forEach((unsubscribe) => {
       unsubscribe();
@@ -69,13 +65,84 @@ class CommandHandler {
   }
 
   /**
-   * Get stores state for reactotron
-   * @TODO implement filters
+   * Get all paths for filter condition
    * @protected
    */
-  protected getStoresState(filters?: string[]): { path: string; value: any }[] {
+  protected getFilterPaths(
+    filter: string,
+    state: Record<string, any>,
+    paths: string[] = [],
+  ): string[] {
+    // we handle all parts of filter
+    if (!filter) {
+      return paths;
+    }
+
+    const [first, ...rest] = filter.split('*');
+    const currentKey = first.replace(/^\.+|\.+$/g, ''); // trim '.'
+    const restFilter = rest.join('*');
+    const newPaths: string[] = [];
+
+    // it's '*'
+    if (!currentKey) {
+      // first iteration
+      if (paths.length === 0) {
+        const keys = Object.keys(state);
+
+        newPaths.push(...(Array.isArray(state) ? keys.map((key) => `[${key}]`) : keys));
+      } else {
+        paths.forEach((key) => {
+          const stateBranch = _.get(state, key) as Record<string, any> | Record<string, any>[];
+          const keys = Object.keys(stateBranch);
+
+          keys.forEach((childKey) => {
+            newPaths.push([key, childKey].join('.'));
+          });
+        });
+      }
+    } else if (paths.length === 0) {
+      // first iteration
+      newPaths.push(currentKey);
+    } else {
+      // it's string part, just join every key
+      paths.forEach((key) => {
+        newPaths.push([key, currentKey].join('.'));
+      });
+    }
+
+    return this.getFilterPaths(restFilter, state, newPaths);
+  }
+
+  /**
+   * Get state by filter
+   * @protected
+   */
+  protected getStateByFilter(
+    filter: string,
+    state: Record<string, any>,
+  ): Record<string, any> | Record<string, any>[] | undefined {
+    const paths = this.getFilterPaths(filter, state);
+    const filterState = {};
+
+    paths.forEach((path) => {
+      _.set(filterState, path, _.get(state, path));
+    });
+
+    return filterState;
+  }
+
+  /**
+   * Get stores state for reactotron
+   * @protected
+   */
+  protected getStoresState(filters: string[] = []): IStateChanges[] {
+    const changes: IStateChanges[] = [];
     const state: { root: Record<string, any> } = { root: {} };
     const stores = Manager.get().getStores();
+
+    if (filters.length === 0) {
+      return changes;
+    }
 
     Manager.get()
       .getStoresRelations()
@@ -94,22 +161,14 @@ class CommandHandler {
         });
       });
 
-    // apply filters?
-    const changedState = diff(this.currentState, state.root);
+    filters.forEach((filter) => {
+      changes.push({
+        path: filter,
+        value: filter === '*' ? state.root : this.getStateByFilter(filter, state.root),
+      });
+    });
 
-    this.currentState = state.root;
-
-    if (_.isEmpty(changedState)) {
-      return [];
-    }
-
-    return [
-      {
-        path: 'state',
-        // value: changedState, // @TODO filter?
-        value: state.root,
-      },
-    ];
+    return changes;
   }
 
   /**
@@ -133,7 +192,10 @@ class CommandHandler {
    * @protected
    */
   protected subscribeStoresChanges(payload: Record<string, any>): void {
-    const filters: string[] = [...new Set([...(payload?.paths ?? [])])];
+    const { defaultSubscribe } = this.config;
+    const filters: string[] = [...new Set([...(payload?.paths ?? []), defaultSubscribe])].filter(
+      Boolean,
+    );
 
     CommandHandler.listeners[Listeners.SPY] = spy((event) => {
       if (event.type === 'update' || !('name' in event)) {
@@ -144,6 +206,51 @@ class CommandHandler {
     });
 
     this.reactotron.stateValuesChange?.(this.getStoresState(filters));
+  }
+
+  /**
+   * Create backup stores
+   * @protected
+   */
+  protected sendBackup(): void {
+    this.reactotron.send('state.backup.response', { state: this.getStoresState(['*']) });
+  }
+
+  /**
+   * Restore state
+   * @protected
+   */
+  protected restoreState(contextState: Record<string, any>): void {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    Object.values(contextState).forEach(({ stores, componentName, ...otherContexts }) => {
+      Object.entries(stores as Record<string, any>).forEach(
+        ([storeId, storeState]: [string, Record<string, any>]) => {
+          const originalStore = Manager.get().getStores().get(storeId);
+
+          // restore store state
+          if (originalStore) {
+            runInAction(() => {
+              console.log('ASSIGN');
+              Object.assign(originalStore, storeState);
+            });
+          }
+        },
+      );
+
+      if (!_.isEmpty(otherContexts)) {
+        this.restoreState(otherContexts as Record<string, any>);
+      }
+    });
+  }
+
+  /**
+   * Restore state from backup
+   * @protected
+   */
+  protected restoreBackup(payload: Record<string, any>): void {
+    const state: Record<string, any> = payload?.state?.[0]?.value ?? {};
+
+    this.restoreState(state);
   }
 
   /**
@@ -159,6 +266,12 @@ class CommandHandler {
 
       case 'state.values.subscribe':
         return this.subscribeStoresChanges(payload);
+
+      case 'state.backup.request':
+        return this.sendBackup();
+
+      case 'state.restore.request':
+        return this.restoreBackup(payload);
     }
   }
 }
