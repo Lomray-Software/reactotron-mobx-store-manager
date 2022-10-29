@@ -7,6 +7,9 @@
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=reactotron-mobx-store-manager&metric=bugs)](https://sonarcloud.io/summary/new_code?id=reactotron-mobx-store-manager)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=reactotron-mobx-store-manager&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=reactotron-mobx-store-manager)
 
+<img src="https://raw.githubusercontent.com/Lomray-Software/reactotron-mobx-store-manager/4d9703e95fd3d0fded10aaf0d510015ce39fea94/example/demo1.jpg" alt="Reactotron demo 1" width="300"/>
+<img src="https://raw.githubusercontent.com/Lomray-Software/reactotron-mobx-store-manager/4d9703e95fd3d0fded10aaf0d510015ce39fea94/example/demo2.jpg" alt="Reactotron demo 2" width="300"/>
+
 ## Table of contents
 
 - [Getting started](#getting-started)
