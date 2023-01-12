@@ -12,7 +12,7 @@ export default {
     preserveModules: true,
     exports: 'auto',
   },
-  external: ['react', 'mobx', 'hoist-non-react-statics', 'mobx-react-lite'],
+  external: ['react', 'mobx', 'hoist-non-react-statics', 'mobx-react-lite', 'lodash', '@lomray/react-mobx-manager'],
   plugins: [
     typescript({
       typescript: ttypescript,

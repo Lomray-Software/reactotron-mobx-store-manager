@@ -1,6 +1,7 @@
 import { Manager } from '@lomray/react-mobx-manager';
 import _ from 'lodash';
 import { runInAction, spy } from 'mobx';
+import type { PureSpyEvent } from 'mobx/dist/core/spy';
 import type { Reactotron } from 'reactotron-core-client';
 import type { IReactotronCommand, IStateChanges } from './types';
 
@@ -196,14 +197,15 @@ class CommandHandler {
     const filters: string[] = [...new Set([...(payload?.paths ?? []), defaultSubscribe])].filter(
       Boolean,
     );
-
-    CommandHandler.listeners[Listeners.SPY] = spy((event) => {
+    const handler = _.throttle((event: PureSpyEvent) => {
       if (event.type === 'update' || !('name' in event)) {
         return;
       }
 
       this.reactotron.stateValuesChange?.(this.getStoresState(filters));
-    });
+    }, 700);
+
+    CommandHandler.listeners[Listeners.SPY] = spy(handler);
 
     this.reactotron.stateValuesChange?.(this.getStoresState(filters));
   }
