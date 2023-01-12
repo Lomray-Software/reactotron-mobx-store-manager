@@ -24,7 +24,7 @@
 The package is distributed using [npm](https://www.npmjs.com/), the node package manager.
 
 ```
-npm i --save @lomray/reactotron-mobx-store-manager
+npm i --save-dev @lomray/reactotron-mobx-store-manager
 ```
 
 In your `ReactotronConfig.js`:
