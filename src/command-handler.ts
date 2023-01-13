@@ -197,13 +197,17 @@ class CommandHandler {
     const filters: string[] = [...new Set([...(payload?.paths ?? []), defaultSubscribe])].filter(
       Boolean,
     );
-    const handler = _.throttle((event: PureSpyEvent) => {
-      if (event.type === 'update' || !('name' in event)) {
-        return;
-      }
+    const handler = _.throttle(
+      (event: PureSpyEvent) => {
+        if (event.type === 'update' || !('name' in event)) {
+          return;
+        }
 
-      this.reactotron.stateValuesChange?.(this.getStoresState(filters));
-    }, 700);
+        this.reactotron.stateValuesChange?.(this.getStoresState(filters));
+      },
+      700,
+      { leading: true, trailing: true },
+    );
 
     CommandHandler.listeners[Listeners.SPY] = spy(handler);
 
