@@ -1,7 +1,6 @@
 import { Manager } from '@lomray/react-mobx-manager';
 import _ from 'lodash';
 import { runInAction, spy } from 'mobx';
-import type { PureSpyEvent } from 'mobx/dist/core/spy';
 import type { Reactotron } from 'reactotron-core-client';
 import type { IReactotronCommand, IStateChanges } from './types';
 
@@ -51,18 +50,18 @@ class CommandHandler {
    * Get context tree key
    * @protected
    */
-  protected getContextKey(contextId: string, nestedKey = 'root'): string {
+  protected getContextKey(contextId: string, nestedKey?: string): string {
     if (contextId === 'root') {
-      return nestedKey;
+      return contextId;
     }
 
     const { parentId } = Manager.get().getStoresRelations().get(contextId) ?? {};
 
     if (!parentId || parentId === 'root') {
-      return `${nestedKey}.${contextId}`;
+      return `${parentId ?? 'root'}.${nestedKey ?? contextId}`;
     }
 
-    return this.getContextKey(parentId, `${nestedKey}.${contextId}`);
+    return this.getContextKey(parentId, `${parentId}.${nestedKey ?? contextId}`);
   }
 
   /**
@@ -198,14 +197,10 @@ class CommandHandler {
       Boolean,
     );
     const handler = _.throttle(
-      (event: PureSpyEvent) => {
-        if (event.type === 'update' || !('name' in event)) {
-          return;
-        }
-
+      () => {
         this.reactotron.stateValuesChange?.(this.getStoresState(filters));
       },
-      700,
+      500,
       { leading: true, trailing: true },
     );
 
