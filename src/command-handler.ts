@@ -1,4 +1,5 @@
-import { Manager } from '@lomray/react-mobx-manager';
+import EventManager from '@lomray/event-manager';
+import { Events, Manager } from '@lomray/react-mobx-manager';
 import _ from 'lodash';
 import { runInAction, spy } from 'mobx';
 import type { Reactotron } from 'reactotron-core-client';
@@ -205,6 +206,10 @@ class CommandHandler {
     );
 
     CommandHandler.listeners[Listeners.SPY] = spy(handler);
+    CommandHandler.listeners['eventManager'] = EventManager.subscribeChannels(
+      [Events.ADD_STORE, Events.DELETE_STORE],
+      handler,
+    );
 
     this.reactotron.stateValuesChange?.(this.getStoresState(filters));
   }
