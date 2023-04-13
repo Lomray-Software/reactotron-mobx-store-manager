@@ -139,35 +139,40 @@ class CommandHandler {
   protected getStoresState(filters: string[] = []): IStateChanges[] {
     const changes: IStateChanges[] = [];
     const state: { root: Record<string, any> } = { root: {} };
-    const stores = Manager.get().getStores();
 
-    if (filters.length === 0) {
-      return changes;
-    }
+    try {
+      const stores = Manager.get().getStores();
 
-    Manager.get()
-      .getStoresRelations()
-      .forEach(({ ids, componentName }, contextId) => {
-        const key = this.getContextKey(contextId);
+      if (filters.length === 0) {
+        return changes;
+      }
 
-        ids.forEach((id) => {
-          const store = stores.get(id);
+      Manager.get()
+        .getStoresRelations()
+        .forEach(({ ids, componentName }, contextId) => {
+          const key = this.getContextKey(contextId);
 
-          if (store) {
-            const storeState = store?.toJSON?.() ?? Manager.getObservableProps(store);
+          ids.forEach((id) => {
+            const store = stores.get(id);
 
-            _.set(state, `${key}.stores.${id}`, storeState);
-            _.set(state, `${key}.componentName`, componentName);
-          }
+            if (store) {
+              const storeState = store?.toJSON?.() ?? Manager.getObservableProps(store);
+
+              _.set(state, `${key}.stores.${id}`, storeState);
+              _.set(state, `${key}.componentName`, componentName);
+            }
+          });
+        });
+
+      filters.forEach((filter) => {
+        changes.push({
+          path: filter,
+          value: filter === '*' ? state.root : this.getStateByFilter(filter, state.root),
         });
       });
-
-    filters.forEach((filter) => {
-      changes.push({
-        path: filter,
-        value: filter === '*' ? state.root : this.getStateByFilter(filter, state.root),
-      });
-    });
+    } catch (e) {
+      // manager has not initialized yet
+    }
 
     return changes;
   }
