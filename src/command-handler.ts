@@ -211,8 +211,8 @@ class CommandHandler {
     );
 
     CommandHandler.listeners[Listeners.SPY] = spy(handler);
-    CommandHandler.listeners['eventManager'] = EventManager.subscribeChannels(
-      [Events.ADD_STORE, Events.DELETE_STORE],
+    CommandHandler.listeners['eventManager'] = EventManager.subscribe(
+      [Events.CREATE_STORE, Events.DELETE_STORE],
       handler,
     );
 

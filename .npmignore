@@ -16,3 +16,4 @@ sonar-project.properties
 /src
 /example
 tsconfig.json
+.nvmrc
