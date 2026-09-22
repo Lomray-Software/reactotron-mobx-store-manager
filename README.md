@@ -1,5 +1,15 @@
 # Reactotron plugin for [Mobx stores manager](https://github.com/Lomray-Software/react-mobx-manager)
 
+Inspect stores owned by `@lomray/react-mobx-manager` in Reactotron. This is not a generic plugin for every MobX store: it reads that manager's store registry and relationships.
+
+## Version and safety
+
+This README describes `@lomray/reactotron-mobx-store-manager@1.2.0`. Stable releases use `prod`; `staging` is the beta branch even though it is the repository default. Declared peers include `@lomray/event-manager`, `@lomray/react-mobx-manager >=2.0.0`, Lodash `>=4.0.0` and MobX `>=6.7.0`. Those ranges are not a verified compatibility matrix.
+
+Load the Reactotron configuration only in development. The plugin can expose store values and restore backups into live stores. Do not connect production data or secrets to an untrusted debugger. `defaultSubscribe` defaults to `'*'`; setting it to `false` disables that default path, not explicit subscriptions or backup requests.
+
+The plugin returns an `onCommand` handler, not a public disposer. Configure it once at app bootstrap, not on every component mount. Constructing a new handler removes previously tracked static subscriptions, but this is not a documented disconnect cleanup API.
+
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=reactotron-mobx-store-manager&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=reactotron-mobx-store-manager)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=reactotron-mobx-store-manager&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=reactotron-mobx-store-manager)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=reactotron-mobx-store-manager&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=reactotron-mobx-store-manager)
@@ -29,14 +39,18 @@ npm i --save-dev @lomray/reactotron-mobx-store-manager
 
 In your `ReactotronConfig.js`:
 
-```jsx
+<!-- docs-example: reactotron -->
+```ts
+import Reactotron from 'reactotron-react-native';
 import MobxStoreManagerPlugin from '@lomray/reactotron-mobx-store-manager';
 
 const reactotron = Reactotron
   .configure()
-  .use(MobxStoreManagerPlugin()) // connect plugin
-  .connect()
+  .use(MobxStoreManagerPlugin({ defaultSubscribe: false }))
+  .connect();
 ```
+
+Import this file only from a development-only entry point. The example assumes your app already initializes `@lomray/react-mobx-manager`; without its stores there is no managed state to inspect. Reactotron desktop connectivity and native transport must be verified in the consuming app.
 
 ## Bugs and feature requests
 
