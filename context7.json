@@ -1,0 +1,30 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "reactotron-mobx-store-manager",
+  "description": "Development Reactotron plugin for stores registered with Lomray react-mobx-manager.",
+  "branch": "prod",
+  "folders": [],
+  "excludeFolders": [
+    "node_modules",
+    "src",
+    "lib",
+    "example",
+    "__tests__",
+    "__mocks__",
+    "__helpers__",
+    "scripts",
+    ".github"
+  ],
+  "excludeFiles": [
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
+  ],
+  "rules": [
+    "Examples target 1.2.0 from prod. Use only in development; state can be exposed and restored through debugger commands.",
+    "defaultSubscribe false disables the default path, not explicit subscriptions or backups. No public disposer is exported."
+  ],
+  "url": "https://context7.com/lomray-software/reactotron-mobx-store-manager",
+  "public_key": "pk_EehfGIwKy1hHNX7dClOVS"
+}
